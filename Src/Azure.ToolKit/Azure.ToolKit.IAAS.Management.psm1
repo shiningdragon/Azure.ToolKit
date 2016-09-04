@@ -504,7 +504,7 @@ function Get-AzureVMDotNetVersion
 		}
 	}
 
-	Install-HOFAzureVMWinRMCert -VMName $VMName -ServiceName $ServiceName > Out-Null
+	Install-AzureVMWinRMCert -VMName $VMName -ServiceName $ServiceName > Out-Null
 	$winRmUri = Get-AzureWinRMUri -ServiceName $ServiceName -Name $VMName 
 	$session = New-PSSession -ConnectionUri $winRmUri.ToString() -Credential $Credential
 	
