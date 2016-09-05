@@ -137,3 +137,21 @@ Describe "Copy-FileToAzureVM" {
 		}
     }
 }
+
+Describe "Set-WindowsUpdateOnAzureVM" {
+
+	Context "Sets the win update settings on a vm" {
+		It "Sets the win update settings on a vm" {	
+
+			{Set-WindowsUpdateOnAzureVM -VMName $vmName -ServiceName $serviceName -Credential $credential -Setting 'blah'} | Should Throw
+
+			Set-WindowsUpdateOnAzureVM -VMName $vmName -ServiceName $serviceName -Credential $credential -Setting 'NoCheck'
+
+			Set-WindowsUpdateOnAzureVM -VMName $vmName -ServiceName $serviceName -Credential $credential -Setting 'CheckOnly'
+
+			Set-WindowsUpdateOnAzureVM -VMName $vmName -ServiceName $serviceName -Credential $credential -Setting 'DownloadOnly'
+
+			Set-WindowsUpdateOnAzureVM -VMName $vmName -ServiceName $serviceName -Credential $credential -Setting 'Install'
+		}
+    }
+}

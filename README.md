@@ -67,3 +67,13 @@ $credential = New-Object -TypeName System.Management.Automation.PSCredential -Ar
 
 Get-AzureVMDotNetVersion -VMName 'myVM' -ServiceName 'myCloudService' -Credential $credential
 ```
+
+### Set-WindowsUpdateOnAzureVM ###
+Sets the win update settings on the target vm
+
+```
+$password = ConvertTo-SecureString -String "password" -AsPlainText -Force
+$credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList 'username', $password
+
+Set-WindowsUpdateOnAzureVM -VMName 'myVM' -ServiceName 'myCloudService' -Credential $credential -Setting "NoCheck"
+```

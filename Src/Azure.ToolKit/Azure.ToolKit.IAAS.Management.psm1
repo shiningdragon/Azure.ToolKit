@@ -106,7 +106,7 @@ function Copy-FileToAzureVM
 	param(
 		[Parameter(Mandatory = $true)][string]$VMName,
 		[Parameter(Mandatory = $true)][string]$ServiceName,
-		[Parameter(Mandatory)][PSCredential]$Credential,
+		[Parameter(Mandatory = $true)][PSCredential]$Credential,
 	    [Parameter(Mandatory = $true)][string]$LocalFile,
 		[Parameter(Mandatory = $true)][string]$RemoteFile,
 		[boolean]$OverWrite = $true,
@@ -258,7 +258,7 @@ function Invoke-RemoteScriptOnAzureVM
 	param(
 		[Parameter(Mandatory = $true)][string]$VMName,
 		[Parameter(Mandatory = $true)][string]$ServiceName,
-		[Parameter(Mandatory)][PSCredential]$Credential,
+		[Parameter(Mandatory = $true)][PSCredential]$Credential,
 		[Parameter(Mandatory = $true)][ScriptBlock]$ScriptBlock,
 		[array]$ArgumentList
 	)
@@ -311,7 +311,7 @@ function Install-MsiToAzureVMFromUrl
 	param(
 		[Parameter(Mandatory = $true)][string]$VMName,
 		[Parameter(Mandatory = $true)][string]$ServiceName,
-		[Parameter(Mandatory)][PSCredential]$Credential,
+		[Parameter(Mandatory = $true)][PSCredential]$Credential,
 		[Parameter(Mandatory = $true)][string]$ProductName,
 	    [Parameter(Mandatory = $true)][string]$MsiUrl,
 		[string]$InstallDirectory = 'C:\Installs'
@@ -403,7 +403,7 @@ function Install-MsiToAzureVMFromFile
 	param(
 		[Parameter(Mandatory = $true)][string]$VMName,
 		[Parameter(Mandatory = $true)][string]$ServiceName,
-		[Parameter(Mandatory)][PSCredential]$Credential,
+		[Parameter(Mandatory = $true)][PSCredential]$Credential,
 		[Parameter(Mandatory = $true)][string]$ProductName,
 	    [Parameter(Mandatory = $true)][string]$LocalFile,
 		[string]$InstallDirectory = 'C:\Installs'
@@ -474,7 +474,7 @@ function Get-AzureVMDotNetVersion
 	param(
 		[Parameter(Mandatory = $true)][string]$VMName,
 		[Parameter(Mandatory = $true)][string]$ServiceName,
-		[Parameter(Mandatory)][PSCredential]$Credential
+		[Parameter(Mandatory = $true)][PSCredential]$Credential
 	)
 
 	# See https://msdn.microsoft.com/library/hh925568(v=vs.110).aspx
@@ -518,12 +518,91 @@ function Get-AzureVMDotNetVersion
 	$result
 }
 
+<#
+.SYNOPSIS
+Sets the win update settings on the target vm
+
+.DESCRIPTION
+Sets the win update settings on the target vm
+
+.PARAMETER VMName
+The name of the vm
+
+.PARAMETER ServiceName
+The name of the cloud service
+
+.PARAMETER Settings
+Winupdate setting ("NoCheck", "CheckOnly", "DownloadOnly", "Install",)
+
+.EXAMPLE
+$password = ConvertTo-SecureString -String "password" -AsPlainText -Force
+$credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList 'username', $password
+
+Set-WindowsUpdateOnAzureVM -VMName 'myVM' -ServiceName 'myCloudService' -Credential $credential -Setting "NoCheck"
+#>
+
+function Set-WindowsUpdateOnAzureVM
+{
+	param(
+		[Parameter(Mandatory = $true)][string]$VMName,
+		[Parameter(Mandatory = $true)][string]$ServiceName,
+		[Parameter(Mandatory = $true)][PSCredential]$Credential,
+		[Parameter(Mandatory = $true)]
+		[ValidateSet("NoCheck", "CheckOnly", "DownloadOnly", "Install",ignorecase=$true)]$Setting
+	)
+
+	# NoCheck: $AuOptions = 1
+	# CheckOnly: $AuOptions = 2
+	# DownloadOnly: $AuOptions = 3
+	# Install: $AuOptions = 4
+
+	$auOptions = 0
+	switch($Setting)
+	{
+		"NoCheck"
+		{
+			$auOptions = 1	
+		}
+		"CheckOnly"
+		{
+			$auOptions = 2	
+		}
+		"DownloadOnly"
+		{
+			$auOptions = 3	
+		}
+		"Install"
+		{
+			$auOptions = 4	
+		}
+		default
+		{
+			throw "Unknown winupdate setting $Setting"
+		}
+	}
+
+	$scriptBlock = {
+		param
+		(
+			[int]$auOptions
+		)
+		$Key = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update" 
+		Set-ItemProperty -Path $Key -Name "AUOptions" -Value $auOptions -Force -Confirm:$false
+		Set-ItemProperty -Path $Key -Name "CachedAUOptions" -Value $auOptions -Force -Confirm:$false
+	}
+
+	Write-Output "Disbale windows update on vm: $VMName"
+	Invoke-RemoteScriptOnAzureVM -VMName $VMName -ServiceName $ServiceName -Credential $Credential `
+		-ScriptBlock $scriptBlock -ArgumentList @($auOptions)
+}
+
 #Export-ModuleMember 'Install-AzureVMWinRMCert'
 Export-ModuleMember 'Copy-FileToAzureVM'
 Export-ModuleMember 'Invoke-RemoteScriptOnAzureVM'
 Export-ModuleMember 'Install-MsiToAzureVMFromUrl'
 Export-ModuleMember 'Install-MsiToAzureVMFromFile'
 Export-ModuleMember 'Get-AzureVMDotNetVersion'
+Export-ModuleMember 'Set-WindowsUpdateOnAzureVM'
 
 
 
