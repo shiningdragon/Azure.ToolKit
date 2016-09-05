@@ -26,14 +26,14 @@ function Install-AzureVMWinRMCert
 
 	$VM = Get-AzureVM -name $vmName -ServiceName $serviceName -ErrorAction SilentlyContinue
 
-	if($VM -eq $null)
+	if($null -eq $VM)
 	{
 		throw "VM: $vmName does not exist in cloud service: $serviceName"
 	}
 
-	$winRMCert = ($VM| select -ExpandProperty vm).DefaultWinRMCertificateThumbprint
+	$winRMCert = ($VM| select-object -ExpandProperty vm).DefaultWinRMCertificateThumbprint
     
-	if ($winRMCert -eq $Null)
+	if ($null -eq $winRMCert)
 	{
 		throw "Default WinRM Certificate Thumbprint has no value"
 	}
@@ -44,7 +44,7 @@ function Install-AzureVMWinRMCert
 
 	$installedCert = Get-Item Cert:\LocalMachine\Root\$winRMCert -ErrorAction SilentlyContinue
 
-	if ($installedCert -eq $null)
+	if ($null -eq $installedCert)
 	{
 		$certTempFile = [IO.Path]::GetTempFileName()
 		$AzureX509cert = Get-AzureCertificate -ServiceName $($VM.serviceName) -Thumbprint $winRMCert -ThumbprintAlgorithm sha1
@@ -57,7 +57,7 @@ function Install-AzureVMWinRMCert
 		$store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
 		$store.Add($CertToImport)
 		$store.Close() 
-		$removeresult=Remove-Item $certTempFile
+		Remove-Item $certTempFile
 		Write-Output  "WinRM Certificate installed onto local machine"
 	}
 	else
@@ -121,7 +121,7 @@ function Copy-FileToAzureVM
 
 	Install-AzureVMWinRMCert -VMName $VMName -ServiceName $ServiceName
 	$winRmUri = Get-AzureWinRMUri -ServiceName $ServiceName -Name $VMName
-	$session = New-PSSession -ConnectionUri $winRmUri.ToString() -Credential $Credential	
+	$session = New-PSSession -ConnectionUri $winRmUri.ToString() -Credential $Credential 
 
 	try 
 	{
@@ -148,7 +148,7 @@ function Copy-FileToAzureVM
 				$dir = [IO.Path]::GetDirectoryName($RemoteFile)
 				if (-not (Test-Path $dir))
 				{
-					Write-Host "Creating directory $dir"
+					Write-Output "Creating directory $dir"
 					New-Item $dir -type directory -Force
 				}
 				[IO.FileStream]$remoteFileStream = [IO.File]::OpenWrite($RemoteFile)
@@ -159,7 +159,7 @@ function Copy-FileToAzureVM
 			}			
 		} -ArgumentList $RemoteFile, $OverWrite
 		$remoteException = Invoke-Command -Session $Session -ScriptBlock { $remoteException }
-		if($remoteException -ne $null) 
+		if($null -ne $remoteException) 
 		{
 			throw $remoteException
 		}
@@ -185,7 +185,7 @@ function Copy-FileToAzureVM
 				}
 			} -ArgumentList $contentchunk,$bytesread
 			$remoteException = Invoke-Command -Session $Session -ScriptBlock { $remoteException }
-			if($remoteException -ne $null)
+			if($null -ne $remoteException)
 			{
 				throw "Error during file transfer: $remoteException"
 			}
@@ -204,12 +204,12 @@ function Copy-FileToAzureVM
 		}
 
 		Invoke-Command -Session $Session -ScriptBlock {
-			if($remoteFileStream -ne $null) {
+			if($null -ne $remoteFileStream) {
 				$remoteFileStream.Close()
 			}
 		}
 
-		if($session -ne $null) {
+		if($null -ne $session) {
 			Remove-PSSession $session
 		}
 	}
@@ -334,7 +334,7 @@ function Install-MsiToAzureVMFromUrl
 
 		if (-not (Test-Path $InstallDirectory))
 		{
-			Write-Host "Creating directory $InstallDirectory"
+			Write-Output "Creating directory $InstallDirectory"
 			New-Item $InstallDirectory -type directory
 		}
 		$url = $MsiUrl
@@ -342,14 +342,14 @@ function Install-MsiToAzureVMFromUrl
 		$logFile = Join-Path $InstallDirectory "$ProductName.log"
 		if (Test-Path $file)
 		{
-			Write-Host "Deleting exisiting file: $file"
+			Write-Output "Deleting exisiting file: $file"
 			Remove-Item $file
 		}
-		Write-Host "Download msi: $url to $file"
+		Write-Output "Download msi: $url to $file"
 		$webclient = New-Object System.Net.WebClient
 		$webclient.DownloadFile($url,$file)
 
-		Write-Host "Running msi: $file"
+		Write-Output "Running msi: $file"
 		& cmd /c msiexec /i $file /L*v $logFile /quiet 
 	} -ArgumentList $ProductName, $MsiUrl, $InstallDirectory
 
@@ -429,7 +429,7 @@ function Install-MsiToAzureVMFromFile
 			$remoteLogFile
 		)
 
-		Write-Host "Running msi: $remoteFile"
+		Write-Output "Running msi: $remoteFile"
 		& cmd /c msiexec /i $remoteFile /L*v $remoteLogFile /quiet 
 	} -ArgumentList $ProductName, $remoteFile, $remoteLogFile
 
@@ -480,7 +480,7 @@ function Get-AzureVMDotNetVersion
 	# See https://msdn.microsoft.com/library/hh925568(v=vs.110).aspx
 	$scriptBlock = {
 		$prop = Get-ItemProperty -Path "hklm:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\" -ErrorAction SilentlyContinue
-		if($prop -ne $null)
+		if($null -ne $prop)
 		{
 			$release = $prop.Release
 			switch ($release)
@@ -504,7 +504,7 @@ function Get-AzureVMDotNetVersion
 		}
 	}
 
-	Install-AzureVMWinRMCert -VMName $VMName -ServiceName $ServiceName > Out-Null
+	Install-AzureVMWinRMCert -VMName $VMName -ServiceName $ServiceName > $null
 	$winRmUri = Get-AzureWinRMUri -ServiceName $ServiceName -Name $VMName 
 	$session = New-PSSession -ConnectionUri $winRmUri.ToString() -Credential $Credential
 	
