@@ -543,6 +543,7 @@ Set-WindowsUpdateOnAzureVM -VMName 'myVM' -ServiceName 'myCloudService' -Credent
 
 function Set-WindowsUpdateOnAzureVM
 {
+	[CmdletBinding()]
 	param(
 		[Parameter(Mandatory = $true)][string]$VMName,
 		[Parameter(Mandatory = $true)][string]$ServiceName,

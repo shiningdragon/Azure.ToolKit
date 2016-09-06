@@ -28,6 +28,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Azure.ToolKit.IAAS.Management.psm1" />
+    <Compile Include="Azure.ToolKit.IAAS.Copy.psm1" />
+    <Compile Include="Azure.ToolKit.Storage.psm1" />
     <Compile Include="Azure.ToolKit.psd1" />
     <Compile Include="PSScriptAnalyzer.ps1" />
   </ItemGroup>

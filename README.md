@@ -7,6 +7,26 @@ Azure.Toolkit is a powershell module providing advanced commands to manage class
 ## Notes ##
 All comands that connect remotley to the Azure vm do so over the public powershell endpoint. As such, the target vm requires an open powershell endpoint on port 5986. Support for connection through site to site vpn to come soon.
 
+### Copy-AzureVM ###
+Copy a classic VM. It is possible to move vms across regions, subscriptions and vnets using this command
+
+```
+# Copy vm to a new vnet in a different region and subscription
+
+Copy-AzureVM -SourceSubscription 'sourceSubscription' `
+	-SourceServiceName 'sourceServiceName' `
+	-SourceVMName 'sourceVMNam' `
+	-DestSubscription 'destSubscription' `
+	-DestServiceName 'destServiceName' `
+	-DestVMName 'destVMName' `
+	-DestLocation 'North Europe' `
+	-DestStorageAccount 'NorthEuropeStorage' `
+	-DestContainer 'vhds' `
+	-DestVnetName 'NorthEuropeVNet' `
+	-DestSubnetName 'Subnet-1' `
+	-PerformVhdBlobCopy $true `
+	-OverwriteDestDisks $true 
+```
 
 ### Copy-FileToAzureVM ###
 Copy a file from your local machine to an Azure vm
@@ -77,3 +97,4 @@ $credential = New-Object -TypeName System.Management.Automation.PSCredential -Ar
 
 Set-WindowsUpdateOnAzureVM -VMName 'myVM' -ServiceName 'myCloudService' -Credential $credential -Setting "NoCheck"
 ```
+

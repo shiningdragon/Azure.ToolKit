@@ -29,6 +29,8 @@
   <ItemGroup />
   <ItemGroup>
     <Compile Include="Azure.ToolKit.IAAS.Management.Tests.ps1" />
+    <Compile Include="Azure.ToolKit.IAAS.Copy.Tests.ps1" />
+    <Compile Include="Azure.ToolKit.Storage.Tests.ps1" />
     <Compile Include="RunTests.ps1" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
