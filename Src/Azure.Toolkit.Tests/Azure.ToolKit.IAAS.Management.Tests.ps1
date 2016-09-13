@@ -1,6 +1,6 @@
 ﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 Import-Module "$here\..\Azure.ToolKit" -Force
-
+(Get-Module 'azure.toolkit').Path
 
 $image = Get-AzureVMImage | Where-Object {$_.imagefamily -eq 'Windows Server 2012 R2 Datacenter' } | sort-object Publisheddate -Descending | select-object -first 1
 $imageName = $image.ImageName
@@ -42,7 +42,7 @@ Describe "Invoke-RemoteScriptOnAzureVM" {
 
 			$now = [DateTime]::Now.Millisecond
 			$name = "testfile_" + $now + ".txt"
-			$fileName = join-path 'c:/unittestdata' $name
+			$fileName = join-path 'c:/' $name
 			Invoke-RemoteScriptOnAzureVM -VMName $vmName -ServiceName $serviceName -Credential $credential `
 				-ScriptBlock $scriptBlock -ArgumentList @($fileName)
 
@@ -170,4 +170,4 @@ Describe "Set-WindowsUpdateOnAzureVM" {
 
 # Clean up 
 Remove-AzureVM -ServiceName $serviceName -Name $vmName -DeleteVHD 
-Remove-AzureService -ServiceName $serviceName
+Remove-AzureService -ServiceName $serviceName -Force

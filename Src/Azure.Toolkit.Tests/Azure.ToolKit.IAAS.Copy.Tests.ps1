@@ -1,7 +1,6 @@
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
-Remove-Module 'Azure.Toolkit' # remove any previously loaded version
 Import-Module "$here\..\Azure.ToolKit" -Force
-(Get-Module 'azure.toolkit').path
+(Get-Module 'azure.toolkit').Path
 
 # Pre conditions
 $image = Get-AzureVMImage | Where-Object {$_.imagefamily -eq 'Windows Server 2012 R2 Datacenter' } | sort-object Publisheddate -Descending | select-object -first 1
@@ -9,7 +8,7 @@ $imageName = $image.ImageName
 $sourceSubscription = 'Visual Studio Ultimate with MSDN'
 $sourceVMName = 'tdc2sdtest01'
 $sourceServiceName = 'tdc2sdtest'
-$sourceLocation = 'North Europe'
+$sourceLocation = 'West Europe'
 $username = 'pvmadmin'
 $password = ''
 
@@ -35,12 +34,20 @@ Describe "Copy-AzureVM" {
 				Start-Sleep -Seconds 120
 			}
 
+			# ensure dest storage account is present
+			$storageexists = Get-AzureStorageAccount -StorageAccountName $destStorageAccount
+			if($null -eq $storageexists)
+			{
+				New-AzureStorageAccount -StorageAccountName $destStorageAccount -Location $destLocation 
+			}
+
 			# ensure source vm is present
 			$vm = $null
 			$vm = Get-AzureVM -ServiceName $sourceServiceName -Name $sourceVMName -ErrorAction SilentlyContinue
 			if($null -eq $vm)
 			{				
-				New-AzureQuickVM –Windows –ServiceName $sourceServiceName –name $sourceVMName –ImageName $imageName –Password $password -AdminUsername $username -Location $sourceLocation -WaitForBoot
+				New-AzureQuickVM –Windows –ServiceName $sourceServiceName –name $sourceVMName –ImageName $imageName `
+				–Password $password -AdminUsername $username -Location $sourceLocation -WaitForBoot
 			}
 
 			Copy-AzureVM `
@@ -66,7 +73,7 @@ Describe "Copy-AzureVM" {
 
 			# Clean up
 			Remove-AzureVM -ServiceName $destServiceName -Name $destVMName -DeleteVHD 
-			Remove-AzureService -ServiceName $destServiceName 
+			Remove-AzureService -ServiceName $destServiceName -Force
 		}
     }
 }

@@ -12,7 +12,7 @@
 # RootModule = ''
 
 # Version number of this module.
-ModuleVersion = '1.2'
+ModuleVersion = '1.3'
 
 # ID used to uniquely identify this module
 GUID = 'bd4390dc-a8ad-4bce-8d69-f53ccf8e4163'
@@ -27,7 +27,7 @@ CompanyName = 'Shining Dragon Software'
 Copyright = '(c) 2014 Shining Dragon Software All rights reserved.'
 
 # Description of the functionality provided by this module
-Description = 'A set of powershell commands to manage resources in azure'
+Description = 'A set of advanced powershell commands to manage Azure Virtual Machines'
 
 # Minimum version of the Windows PowerShell engine required by this module
 PowerShellVersion = '5.0'
