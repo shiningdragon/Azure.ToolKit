@@ -6,7 +6,7 @@ Azure.Toolkit is a powershell module providing advanced commands to manage class
 
 ## Latest Release ##
 
-Instal it direct from the powershell gallery
+Install it direct from the powershell gallery
 https://www.powershellgallery.com/packages/Azure.ToolKit/
 
 ## Notes ##
@@ -106,7 +106,7 @@ Set-WindowsUpdateOnAzureVM -VMName 'myVM' -ServiceName 'myCloudService' -Credent
 ### Copy-BlobToStorageAccountSync ###
 Synchronously copy a blob from one storage account to another. Works across regions and subscriptions
 
-'''
+```
 Copy-BlobToStorageAccountSync -SourceBlobName 'blobName `
 				-SourceStorageAccount 'sourceStorageAccount' `
 				-SourceContainer 'sourceContainer' `
@@ -115,13 +115,13 @@ Copy-BlobToStorageAccountSync -SourceBlobName 'blobName `
 				-DestStorageAccount 'destStorageAccountName' `
 				-DestContainer 'destContainer' `
 				-DestSubscription 'destContainer'
-'''
+```
 
 ### Copy-BlobToStorageAccountASync ###
 Asynchronously copy a blob from one storage account to another. Works across regions and subscriptions
 Returns an object that can be used to monitor the progress of the copy
 
-'''
+```
 $copyTask = Copy-BlobToStorageAccountASync -SourceBlobName 'blobName `
 				-SourceStorageAccount 'sourceStorageAccount' `
 				-SourceContainer 'sourceContainer' `
@@ -135,4 +135,4 @@ if(($copyTask | Get-AzureStorageBlobCopyState).Status -eq "Success")
 {
 	# Copy complete
 }
-'''
+```
