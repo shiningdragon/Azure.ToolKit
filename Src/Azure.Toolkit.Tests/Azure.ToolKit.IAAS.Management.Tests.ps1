@@ -1,19 +1,31 @@
 ﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 Import-Module "$here\..\Azure.ToolKit" -Force
 
-###########################################################################
-# In a perfect world, every time the tests run we would automatically delete and 
-# recreate this vm in azure to ensure test start conditions are always constant.
-# This takes times so it will be left as amanual task so the same vm and be reused if needed
-############################################################################
+
+$image = Get-AzureVMImage | Where-Object {$_.imagefamily -eq 'Windows Server 2012 R2 Datacenter' } | sort-object Publisheddate -Descending | select-object -first 1
+$imageName = $image.ImageName
 $location = "West Europe"
-$vmName = "myVM"
-$serviceName = "myService"
-$username = "user"
-$password = "password"
+$vmName = "tdc2sdtestm"
+$serviceName = "tdc2sdtestm"
+$username = "pvmadmin"
+$password = ""
 $pword = ConvertTo-SecureString -String $password -AsPlainText -Force
 $credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $username, $pword
-#############################################################################
+
+# Create the vm from scratch
+$vm = Get-AzureVM -ServiceName $serviceName -Name $vmName -ErrorAction SilentlyContinue
+if($null -ne $vm)
+{
+	Remove-AzureVM -ServiceName $serviceName -Name $vmName -DeleteVHD 
+	Start-Sleep -Seconds 60
+}
+
+$vm = Get-AzureVM -ServiceName $serviceName -Name $vmName -ErrorAction SilentlyContinue
+if($null -eq $vm)
+{				
+	New-AzureQuickVM –Windows –ServiceName $serviceName –name $vmName –ImageName $imageName –Password $password -AdminUsername $username -Location $location -WaitForBoot
+}
+
 
 Describe "Invoke-RemoteScriptOnAzureVM" {
 
@@ -155,3 +167,7 @@ Describe "Set-WindowsUpdateOnAzureVM" {
 		}
     }
 }
+
+# Clean up 
+Remove-AzureVM -ServiceName $serviceName -Name $vmName -DeleteVHD 
+Remove-AzureService -ServiceName $serviceName

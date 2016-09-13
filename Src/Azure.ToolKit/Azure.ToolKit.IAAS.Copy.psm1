@@ -108,7 +108,7 @@ function Copy-AzureVM
 	Write-Output "Exporting the vm config to $exportPath"
 	Export-AzureVM -ServiceName $SourceServiceName -Name $SourceVMName -Path $exportPath
 		
-	$disks = Get-AzureDisk | ? { 
+	$disks = Get-AzureDisk | Where-Object { 
 		![string]::IsNullOrEmpty($_.AttachedTo) -and $_.AttachedTo.RoleName -eq $SourceVMName 
 	}
 
@@ -120,7 +120,7 @@ function Copy-AzureVM
 		if($sourceVM.InstanceStatus -ne "StoppedDeallocated")
 		{
 			Write-Output "Stopping vm $SourceVMName"
-			Stop-AzureVM -ServiceName $SourceServiceName -Name $SourceVMName
+			Stop-AzureVM -ServiceName $SourceServiceName -Name $SourceVMName -Force
 		}
 
 		$copyTasks = @()
@@ -150,7 +150,7 @@ function Copy-AzureVM
 		while(!$complete)
 		{
 			$complete =  $true
-			$copyTasks | % {
+			$copyTasks | ForEach-Object {
 				$_ | Get-AzureStorageBlobCopyState
 				if(($_ | Get-AzureStorageBlobCopyState).Status -eq "Pending")
 				{
@@ -188,7 +188,7 @@ function Copy-AzureVM
 								  -ErrorAction SilentlyContinue `
 								  -ErrorVariable LastError
 
-		if ($azureDisk -ne $null)
+		if ($null-ne $azureDisk )
 		{
 			Write-Output "Disk: $destDiskName already exists"
 
@@ -206,9 +206,9 @@ function Copy-AzureVM
 		$destMediaLocation = "http://{0}.blob.core.windows.net/{1}/{2}" -f $DestStorageAccount,$DestContainer,$destBlobName
  
 		# Attempt to add the azure OS or data disk
-		if ($disk.OS -ne $null -and $disk.OS.Length -ne 0)
+		if ($null -ne $disk.OS -and $disk.OS.Length -ne 0)
 		{
-			if ($azureDisk -eq $null)
+			if ($null-eq $azureDisk )
 			{
 				Write-Output "Creating OS disk $destDiskName from vhd $destMediaLocation"
 				$azureDisk = Add-AzureDisk -DiskName $destDiskName `
@@ -226,7 +226,7 @@ function Copy-AzureVM
 		else
 		{
 			# Data disk
-			if ($azureDisk -eq $null)
+			if ($null -eq $azureDisk )
 			{
 				Write-Output "Creating data disk $destDiskName from vhd $destMediaLocation"
 				$azureDisk = Add-AzureDisk -DiskName $destDiskName `
@@ -238,7 +238,7 @@ function Copy-AzureVM
          
 			# Update VM config
 			# Match on source disk name and update with dest disk name
-			$vmConfig.DataVirtualHardDisks | % { 
+			$vmConfig.DataVirtualHardDisks | ForEach-Object { 
 				if($_.DiskName -eq $disk.DiskName)
 				{
 					$_.DiskName = $azureDisk.DiskName

@@ -4,6 +4,11 @@ Azure.Toolkit is a powershell module providing advanced commands to manage class
 
 *New functionality is currently being added and support for Azure RM virtual machines will come soon.*
 
+## Latest Release ##
+
+Instal it direct from the powershell gallery
+https://www.powershellgallery.com/packages/Azure.ToolKit/
+
 ## Notes ##
 All comands that connect remotley to the Azure vm do so over the public powershell endpoint. As such, the target vm requires an open powershell endpoint on port 5986. Support for connection through site to site vpn to come soon.
 
@@ -98,3 +103,36 @@ $credential = New-Object -TypeName System.Management.Automation.PSCredential -Ar
 Set-WindowsUpdateOnAzureVM -VMName 'myVM' -ServiceName 'myCloudService' -Credential $credential -Setting "NoCheck"
 ```
 
+### Copy-BlobToStorageAccountSync ###
+Synchronously copy a blob from one storage account to another. Works across regions and subscriptions
+
+'''
+Copy-BlobToStorageAccountSync -SourceBlobName 'blobName `
+				-SourceStorageAccount 'sourceStorageAccount' `
+				-SourceContainer 'sourceContainer' `
+				-SourceSubscription 'sourceSubscription' `
+				-DestBlobName 'destBlobName' `
+				-DestStorageAccount 'destStorageAccountName' `
+				-DestContainer 'destContainer' `
+				-DestSubscription 'destContainer'
+'''
+
+### Copy-BlobToStorageAccountASync ###
+Asynchronously copy a blob from one storage account to another. Works across regions and subscriptions
+Returns an object that can be used to monitor the progress of the copy
+
+'''
+$copyTask = Copy-BlobToStorageAccountASync -SourceBlobName 'blobName `
+				-SourceStorageAccount 'sourceStorageAccount' `
+				-SourceContainer 'sourceContainer' `
+				-SourceSubscription 'sourceSubscription' `
+				-DestBlobName 'destBlobName' `
+				-DestStorageAccount 'destStorageAccountName' `
+				-DestContainer 'destContainer' `
+				-DestSubscription 'destContainer'
+
+if(($copyTask | Get-AzureStorageBlobCopyState).Status -eq "Success")
+{
+	# Copy complete
+}
+'''

@@ -101,7 +101,7 @@ function Copy-BlobToStorageAccountASync
 	$existingContainer = Get-AzureStorageContainer -Name $DestContainer -Context $destinationContext -ErrorAction SilentlyContinue
 	if($null -eq $existingContainer)
 	{
-		$azureContainer = New-AzureStorageContainer -Name $DestContainer -Context $destinationContext -ErrorAction Stop
+		New-AzureStorageContainer -Name $DestContainer -Context $destinationContext -ErrorAction Stop
 	}
 
 	# Copy the blob 
